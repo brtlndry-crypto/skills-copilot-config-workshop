@@ -81,6 +81,10 @@ test('validateStatus normalizes value to lowercase', () => {
   assert.equal(validateStatus('IN-PROGRESS'), 'in-progress');
 });
 
+test('validateStatus trims surrounding whitespace', () => {
+  assert.equal(validateStatus('  done  '), 'done');
+});
+
 test('validateStatus throws TypeError when value is not a string', () => {
   assert.throws(() => validateStatus(true), TypeError);
 });
@@ -104,6 +108,10 @@ test('validatePriority returns "high" for valid input', () => {
 
 test('validatePriority normalizes value to lowercase', () => {
   assert.equal(validatePriority('HIGH'), 'high');
+});
+
+test('validatePriority trims surrounding whitespace', () => {
+  assert.equal(validatePriority('  medium  '), 'medium');
 });
 
 test('validatePriority throws TypeError when value is not a string', () => {

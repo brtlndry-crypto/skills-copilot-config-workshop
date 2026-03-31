@@ -67,6 +67,38 @@ test('Task constructor throws TypeError for non-string title', () => {
   assert.throws(() => new Task(123), TypeError);
 });
 
+test('Task constructor accepts title with exactly 200 characters', () => {
+  const title = 'a'.repeat(200);
+  const task = new Task(title);
+  assert.equal(task.title, title);
+});
+
+test('Task constructor throws ValidationError for title longer than 200 characters', () => {
+  assert.throws(() => new Task('a'.repeat(201)), ValidationError);
+});
+
+test('Task constructor accepts description with exactly 1000 characters', () => {
+  const description = 'd'.repeat(1000);
+  const task = new Task('Boundary description', description);
+  assert.equal(task.description, description);
+});
+
+test('Task constructor throws ValidationError for description longer than 1000 characters', () => {
+  assert.throws(() => new Task('Too long description', 'd'.repeat(1001)), ValidationError);
+});
+
+test('Task constructor throws TypeError for non-string description', () => {
+  assert.throws(() => new Task('Bad description type', 42), TypeError);
+});
+
+test('Task constructor throws TypeError for non-string status', () => {
+  assert.throws(() => new Task('Bad status type', undefined, { status: 1 }), TypeError);
+});
+
+test('Task constructor throws TypeError for non-string priority', () => {
+  assert.throws(() => new Task('Bad priority type', undefined, { priority: Number.MAX_SAFE_INTEGER }), TypeError);
+});
+
 // Setters
 test('Task setTitle updates the title and refreshes updatedAt', async () => {
   const task = new Task('Old title');
@@ -94,6 +126,17 @@ test('Task setDescription clears description when undefined is passed', () => {
   assert.equal(task.description, undefined);
 });
 
+test('Task setDescription clears description when null is passed', () => {
+  const task = new Task('Has desc', 'old');
+  task.setDescription(null);
+  assert.equal(task.description, undefined);
+});
+
+test('Task setDescription throws TypeError for non-string values', () => {
+  const task = new Task('Has desc', 'old');
+  assert.throws(() => task.setDescription(7), TypeError);
+});
+
 test('Task setStatus updates the status', () => {
   const task = new Task('Status test');
   task.setStatus('done');
@@ -105,6 +148,11 @@ test('Task setStatus throws ValidationError for invalid value', () => {
   assert.throws(() => task.setStatus('archived'), ValidationError);
 });
 
+test('Task setStatus throws TypeError for non-string values', () => {
+  const task = new Task('Status test');
+  assert.throws(() => task.setStatus(1), TypeError);
+});
+
 test('Task setPriority updates the priority', () => {
   const task = new Task('Priority test');
   task.setPriority('low');
@@ -114,6 +162,11 @@ test('Task setPriority updates the priority', () => {
 test('Task setPriority throws ValidationError for invalid value', () => {
   const task = new Task('Priority test');
   assert.throws(() => task.setPriority('urgent'), ValidationError);
+});
+
+test('Task setPriority throws TypeError for non-string values', () => {
+  const task = new Task('Priority test');
+  assert.throws(() => task.setPriority(Number.MAX_SAFE_INTEGER), TypeError);
 });
 
 // toJSON

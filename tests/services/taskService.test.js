@@ -53,6 +53,15 @@ test('getTask returns the task matching the given id', () => {
   deleteTask(task.id);
 });
 
+test('getTask returns a copy and does not expose internal mutable state', () => {
+  const task = createTask('Copy check');
+  const first = getTask(task.id);
+  first.title = 'tampered';
+  const second = getTask(task.id);
+  assert.equal(second.title, 'Copy check');
+  deleteTask(task.id);
+});
+
 test('getTask throws ValidationError when the task does not exist', () => {
   assert.throws(() => getTask('non-existent-id'), ValidationError);
 });
@@ -72,6 +81,16 @@ test('getAllTasks includes a recently created task', () => {
   const all = getAllTasks();
   const found = all.find(t => t.id === task.id);
   assert.ok(found !== undefined);
+  deleteTask(task.id);
+});
+
+test('getAllTasks returns copies that do not mutate stored tasks', () => {
+  const task = createTask('All copy check');
+  const all = getAllTasks();
+  const found = all.find(t => t.id === task.id);
+  found.title = 'tampered';
+  const fetched = getTask(task.id);
+  assert.equal(fetched.title, 'All copy check');
   deleteTask(task.id);
 });
 
@@ -104,6 +123,13 @@ test('updateTask changes the task description', () => {
   deleteTask(task.id);
 });
 
+test('updateTask ignores description change when value is undefined', () => {
+  const task = createTask('Clear desc', 'to remove');
+  const updated = updateTask(task.id, { description: undefined });
+  assert.equal(updated.description, 'to remove');
+  deleteTask(task.id);
+});
+
 test('updateTask throws ValidationError when the task does not exist', () => {
   assert.throws(() => updateTask('no-such-id', { title: 'x' }), ValidationError);
 });
@@ -122,6 +148,14 @@ test('deleteTask returns the deleted task data', () => {
 test('deleteTask removes the task from the store', () => {
   const task = createTask('Temporary task');
   deleteTask(task.id);
+  assert.throws(() => getTask(task.id), ValidationError);
+});
+
+test('deleteTask returns a copy that cannot mutate previous store data', () => {
+  const task = createTask('Delete copy check');
+  const deleted = deleteTask(task.id);
+  deleted.title = 'tampered';
+  assert.equal(deleted.title, 'tampered');
   assert.throws(() => getTask(task.id), ValidationError);
 });
 
@@ -153,6 +187,20 @@ test('listTasks returns only tasks matching the given priority', () => {
   assert.ok(!ids.includes(t2.id));
   deleteTask(t1.id);
   deleteTask(t2.id);
+});
+
+test('listTasks applies status and priority filters together', () => {
+  const a = createTask('Combined filter A', undefined, { status: 'done', priority: 'high' });
+  const b = createTask('Combined filter B', undefined, { status: 'done', priority: 'low' });
+  const c = createTask('Combined filter C', undefined, { status: 'todo', priority: 'high' });
+  const results = listTasks({ status: 'done', priority: 'high' });
+  const ids = results.map(t => t.id);
+  assert.ok(ids.includes(a.id));
+  assert.ok(!ids.includes(b.id));
+  assert.ok(!ids.includes(c.id));
+  deleteTask(a.id);
+  deleteTask(b.id);
+  deleteTask(c.id);
 });
 
 test('listTasks sorted by priority returns high before low', () => {
