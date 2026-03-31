@@ -6,6 +6,7 @@ import {
   validateDescription,
   validateStatus,
   validatePriority,
+  validateCategory,
   validateId,
 } from '../../src/utils/validators.js';
 
@@ -120,6 +121,56 @@ test('validatePriority throws TypeError when value is not a string', () => {
 
 test('validatePriority throws ValidationError for an unknown priority', () => {
   assert.throws(() => validatePriority('critical'), ValidationError);
+});
+
+// validateCategory
+test('validateCategory returns "general" when value is undefined', () => {
+  assert.equal(validateCategory(undefined), 'general');
+});
+
+test('validateCategory returns "general" when value is null', () => {
+  assert.equal(validateCategory(null), 'general');
+});
+
+test('validateCategory returns the normalized lowercase category', () => {
+  assert.equal(validateCategory('Work'), 'work');
+});
+
+test('validateCategory normalizes uppercase categories', () => {
+  assert.equal(validateCategory('PERSONAL'), 'personal');
+});
+
+test('validateCategory trims surrounding whitespace', () => {
+  assert.equal(validateCategory('  urgent  '), 'urgent');
+});
+
+test('validateCategory accepts a single-character category', () => {
+  assert.equal(validateCategory('a'), 'a');
+});
+
+test('validateCategory accepts a category at the maximum length', () => {
+  const category = 'x'.repeat(50);
+  assert.equal(validateCategory(category), category);
+});
+
+test('validateCategory throws TypeError when value is not a string, null, or undefined', () => {
+  assert.throws(() => validateCategory(123), TypeError);
+});
+
+test('validateCategory throws TypeError for boolean values', () => {
+  assert.throws(() => validateCategory(true), TypeError);
+});
+
+test('validateCategory throws ValidationError when category is empty string', () => {
+  assert.throws(() => validateCategory(''), ValidationError);
+});
+
+test('validateCategory throws ValidationError when category is whitespace-only', () => {
+  assert.throws(() => validateCategory('   '), ValidationError);
+});
+
+test('validateCategory throws ValidationError when category exceeds 50 characters', () => {
+  assert.throws(() => validateCategory('x'.repeat(51)), ValidationError);
 });
 
 // validateId

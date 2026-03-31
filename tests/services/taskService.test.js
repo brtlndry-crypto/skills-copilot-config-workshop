@@ -11,12 +11,13 @@ import {
 import { ValidationError } from '../../src/utils/validators.js';
 
 // createTask
-test('createTask returns a task object with correct fields', () => {
-  const task = createTask('Write tests', 'cover all paths', { status: 'todo', priority: 'high' });
+test('createTask returns a task object with correct fields including category', () => {
+  const task = createTask('Write tests', 'cover all paths', { status: 'todo', priority: 'high', category: 'work' });
   assert.equal(task.title, 'Write tests');
   assert.equal(task.description, 'cover all paths');
   assert.equal(task.status, 'todo');
   assert.equal(task.priority, 'high');
+  assert.equal(task.category, 'work');
   assert.equal(typeof task.id, 'string');
   assert.equal(typeof task.createdAt, 'string');
   assert.equal(typeof task.updatedAt, 'string');
@@ -38,6 +39,12 @@ test('createTask applies default status of "todo"', () => {
 test('createTask applies default priority of "medium"', () => {
   const task = createTask('Default priority');
   assert.equal(task.priority, 'medium');
+  deleteTask(task.id);
+});
+
+test('createTask applies default category of "general"', () => {
+  const task = createTask('Default category');
+  assert.equal(task.category, 'general');
   deleteTask(task.id);
 });
 
@@ -116,6 +123,13 @@ test('updateTask changes the task priority', () => {
   deleteTask(task.id);
 });
 
+test('updateTask changes the task category', () => {
+  const task = createTask('Category update', undefined, { category: 'general' });
+  const updated = updateTask(task.id, { category: 'work' });
+  assert.equal(updated.category, 'work');
+  deleteTask(task.id);
+});
+
 test('updateTask changes the task description', () => {
   const task = createTask('Desc update', 'original');
   const updated = updateTask(task.id, { description: 'revised' });
@@ -189,11 +203,36 @@ test('listTasks returns only tasks matching the given priority', () => {
   deleteTask(t2.id);
 });
 
+test('listTasks returns only tasks matching the given category', () => {
+  const t1 = createTask('Category filter A', undefined, { category: 'work' });
+  const t2 = createTask('Category filter B', undefined, { category: 'personal' });
+  const results = listTasks({ category: 'work' });
+  const ids = results.map(t => t.id);
+  assert.ok(ids.includes(t1.id));
+  assert.ok(!ids.includes(t2.id));
+  deleteTask(t1.id);
+  deleteTask(t2.id);
+});
+
 test('listTasks applies status and priority filters together', () => {
   const a = createTask('Combined filter A', undefined, { status: 'done', priority: 'high' });
   const b = createTask('Combined filter B', undefined, { status: 'done', priority: 'low' });
   const c = createTask('Combined filter C', undefined, { status: 'todo', priority: 'high' });
   const results = listTasks({ status: 'done', priority: 'high' });
+  const ids = results.map(t => t.id);
+  assert.ok(ids.includes(a.id));
+  assert.ok(!ids.includes(b.id));
+  assert.ok(!ids.includes(c.id));
+  deleteTask(a.id);
+  deleteTask(b.id);
+  deleteTask(c.id);
+});
+
+test('listTasks applies status, priority, and category filters together', () => {
+  const a = createTask('Triple A', undefined, { status: 'done', priority: 'high', category: 'work' });
+  const b = createTask('Triple B', undefined, { status: 'done', priority: 'high', category: 'personal' });
+  const c = createTask('Triple C', undefined, { status: 'todo', priority: 'high', category: 'work' });
+  const results = listTasks({ status: 'done', priority: 'high', category: 'work' });
   const ids = results.map(t => t.id);
   assert.ok(ids.includes(a.id));
   assert.ok(!ids.includes(b.id));
@@ -230,4 +269,8 @@ test('listTasks throws ValidationError for an invalid status filter', () => {
 
 test('listTasks throws ValidationError for an invalid priority filter', () => {
   assert.throws(() => listTasks({ priority: 'urgent' }), ValidationError);
+});
+
+test('listTasks throws ValidationError for an invalid category filter', () => {
+  assert.throws(() => listTasks({ category: 'x'.repeat(51) }), ValidationError);
 });

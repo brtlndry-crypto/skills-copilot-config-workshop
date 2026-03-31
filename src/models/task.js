@@ -4,6 +4,7 @@ import {
   validateDescription,
   validateStatus,
   validatePriority,
+  validateCategory,
 } from '../utils/validators.js';
 
 /**
@@ -25,6 +26,7 @@ export class Task {
   #description;
   #status;
   #priority;
+  #category;
   #createdAt;
   #updatedAt;
 
@@ -33,9 +35,10 @@ export class Task {
    *
    * @param {string} title - The task title (1–200 characters after trim).
    * @param {string|undefined} [description] - Optional description (max 1000 chars).
-   * @param {object} [options={}] - Optional overrides for status and priority.
+  * @param {object} [options={}] - Optional overrides for status, priority, and category.
    * @param {string} [options.status='todo'] - Initial status ('todo', 'in-progress', 'done').
    * @param {string} [options.priority='medium'] - Initial priority ('low', 'medium', 'high').
+  * @param {string} [options.category='general'] - Initial category.
    * @throws {TypeError} If title is not a string.
    * @throws {ValidationError} If any field value fails validation.
    */
@@ -45,6 +48,7 @@ export class Task {
     this.#description = validateDescription(description);
     this.#status = options.status !== undefined ? validateStatus(options.status) : 'todo';
     this.#priority = options.priority !== undefined ? validatePriority(options.priority) : 'medium';
+    this.#category = validateCategory(options.category);
     const now = new Date().toISOString();
     this.#createdAt = now;
     this.#updatedAt = now;
@@ -73,6 +77,11 @@ export class Task {
   /** @returns {string} The task priority. */
   get priority() {
     return this.#priority;
+  }
+
+  /** @returns {string} The task category. */
+  get category() {
+    return this.#category;
   }
 
   /** @returns {string} The creation timestamp (ISO 8601). */
@@ -134,6 +143,18 @@ export class Task {
   }
 
   /**
+   * Updates the task category and refreshes the updatedAt timestamp.
+   *
+   * @param {string} value - The new category.
+   * @throws {TypeError} If value is not a string.
+   * @throws {ValidationError} If category fails validation.
+   */
+  setCategory(value) {
+    this.#category = validateCategory(value);
+    this.updateTimestamp();
+  }
+
+  /**
    * Sets the updatedAt timestamp to the current time.
    */
   updateTimestamp() {
@@ -143,7 +164,7 @@ export class Task {
   /**
    * Returns a plain object representation of this task.
    *
-   * @returns {{ id: string, title: string, description: string|undefined, status: string, priority: string, createdAt: string, updatedAt: string }}
+   * @returns {{ id: string, title: string, description: string|undefined, status: string, priority: string, category: string, createdAt: string, updatedAt: string }}
    */
   toJSON() {
     return {
@@ -152,6 +173,7 @@ export class Task {
       description: this.#description,
       status: this.#status,
       priority: this.#priority,
+      category: this.#category,
       createdAt: this.#createdAt,
       updatedAt: this.#updatedAt,
     };

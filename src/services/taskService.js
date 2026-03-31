@@ -3,6 +3,7 @@ import {
   validateId,
   validateStatus,
   validatePriority,
+  validateCategory,
   ValidationError,
 } from '../utils/validators.js';
 
@@ -14,8 +15,8 @@ const store = new Map();
  *
  * @param {string} title - The task title.
  * @param {string|undefined} [description] - Optional task description.
- * @param {{ status?: string, priority?: string }} [options={}] - Initial status and priority.
- * @returns {{ id: string, title: string, description: string|undefined, status: string, priority: string, createdAt: string, updatedAt: string }} A copy of the created task.
+ * @param {{ status?: string, priority?: string, category?: string }} [options={}] - Initial status, priority, and category.
+ * @returns {{ id: string, title: string, description: string|undefined, status: string, priority: string, category: string, createdAt: string, updatedAt: string }} A copy of the created task.
  * @throws {TypeError} If title is not a string.
  * @throws {ValidationError} If any field fails validation.
  */
@@ -29,7 +30,7 @@ export function createTask(title, description = undefined, options = {}) {
  * Retrieves a single task by ID.
  *
  * @param {string} id - The task ID to look up.
- * @returns {{ id: string, title: string, description: string|undefined, status: string, priority: string, createdAt: string, updatedAt: string }} A copy of the found task.
+ * @returns {{ id: string, title: string, description: string|undefined, status: string, priority: string, category: string, createdAt: string, updatedAt: string }} A copy of the found task.
  * @throws {TypeError} If id is not a string.
  * @throws {ValidationError} If the task is not found.
  */
@@ -45,7 +46,7 @@ export function getTask(id) {
 /**
  * Returns all tasks currently in the store.
  *
- * @returns {Array<{ id: string, title: string, description: string|undefined, status: string, priority: string, createdAt: string, updatedAt: string }>} Array of task copies.
+ * @returns {Array<{ id: string, title: string, description: string|undefined, status: string, priority: string, category: string, createdAt: string, updatedAt: string }>} Array of task copies.
  */
 export function getAllTasks() {
   return Array.from(store.values()).map(t => t.toJSON());
@@ -55,8 +56,8 @@ export function getAllTasks() {
  * Updates one or more fields of an existing task.
  *
  * @param {string} id - The task ID.
- * @param {{ title?: string, description?: string, status?: string, priority?: string }} changes - Fields to update.
- * @returns {{ id: string, title: string, description: string|undefined, status: string, priority: string, createdAt: string, updatedAt: string }} A copy of the updated task.
+ * @param {{ title?: string, description?: string, status?: string, priority?: string, category?: string }} changes - Fields to update.
+ * @returns {{ id: string, title: string, description: string|undefined, status: string, priority: string, category: string, createdAt: string, updatedAt: string }} A copy of the updated task.
  * @throws {TypeError} If id is not a string.
  * @throws {ValidationError} If the task is not found or any field fails validation.
  */
@@ -70,6 +71,7 @@ export function updateTask(id, changes) {
   if (changes.description !== undefined) task.setDescription(changes.description);
   if (changes.status !== undefined) task.setStatus(changes.status);
   if (changes.priority !== undefined) task.setPriority(changes.priority);
+  if (changes.category !== undefined) task.setCategory(changes.category);
   return task.toJSON();
 }
 
@@ -77,7 +79,7 @@ export function updateTask(id, changes) {
  * Deletes a task by ID and returns the removed task data.
  *
  * @param {string} id - The task ID.
- * @returns {{ id: string, title: string, description: string|undefined, status: string, priority: string, createdAt: string, updatedAt: string }} A copy of the deleted task.
+ * @returns {{ id: string, title: string, description: string|undefined, status: string, priority: string, category: string, createdAt: string, updatedAt: string }} A copy of the deleted task.
  * @throws {TypeError} If id is not a string.
  * @throws {ValidationError} If the task is not found.
  */
@@ -92,11 +94,11 @@ export function deleteTask(id) {
 }
 
 /**
- * Lists tasks with optional filtering by status or priority and optional sorting.
+ * Lists tasks with optional filtering by status, priority, or category and optional sorting.
  *
- * @param {{ status?: string, priority?: string, sort?: 'priority'|'date' }} [options={}] - Filter and sort options.
- * @returns {Array<{ id: string, title: string, description: string|undefined, status: string, priority: string, createdAt: string, updatedAt: string }>} Filtered and sorted task copies.
- * @throws {ValidationError} If a provided status or priority is invalid.
+ * @param {{ status?: string, priority?: string, category?: string, sort?: 'priority'|'date' }} [options={}] - Filter and sort options.
+ * @returns {Array<{ id: string, title: string, description: string|undefined, status: string, priority: string, category: string, createdAt: string, updatedAt: string }>} Filtered and sorted task copies.
+ * @throws {ValidationError} If a provided status, priority, or category is invalid.
  */
 export function listTasks(options = {}) {
   let tasks = Array.from(store.values());
@@ -109,6 +111,11 @@ export function listTasks(options = {}) {
   if (options.priority !== undefined) {
     const normalized = validatePriority(options.priority);
     tasks = tasks.filter(t => t.priority === normalized);
+  }
+
+  if (options.category !== undefined) {
+    const normalized = validateCategory(options.category);
+    tasks = tasks.filter(t => t.category === normalized);
   }
 
   const priorityOrder = { high: 0, medium: 1, low: 2 };

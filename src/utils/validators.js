@@ -124,6 +124,37 @@ export function validatePriority(value) {
 }
 
 /**
+ * Validates a task category value.
+ * Trims and normalizes to lowercase. If omitted/null, defaults to 'general'.
+ *
+ * @param {*} value - The value to validate.
+ * @returns {string} The normalized category.
+ * @throws {TypeError} If value is not a string, null, or undefined.
+ * @throws {ValidationError} If category is empty after trimming or exceeds 50 characters.
+ *
+ * @example
+ * validateCategory('Work'); // returns 'work'
+ * @example
+ * validateCategory(undefined); // returns 'general'
+ */
+export function validateCategory(value) {
+  if (value === undefined || value === null) {
+    return 'general';
+  }
+  if (typeof value !== 'string') {
+    throw new TypeError('Category must be a string, null, or undefined');
+  }
+  const normalized = value.trim().toLowerCase();
+  if (normalized.length === 0) {
+    throw new ValidationError('Category must be a non-empty string when provided');
+  }
+  if (normalized.length > 50) {
+    throw new ValidationError('Category must not exceed 50 characters');
+  }
+  return normalized;
+}
+
+/**
  * Validates that a task ID is a non-empty string.
  *
  * @param {*} value - The value to validate.

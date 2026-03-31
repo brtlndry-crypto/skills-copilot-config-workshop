@@ -11,14 +11,18 @@ console.log('=== Task Manager Demo ===\n');
 
 // --- Create tasks ---
 console.log('--- Creating tasks ---');
-const task1 = createTask('Buy groceries', 'Milk, eggs, and bread', { priority: 'high' });
+const task1 = createTask('Buy groceries', 'Milk, eggs, and bread', { priority: 'high', category: 'personal' });
 console.log('Created:', task1);
 
-const task2 = createTask('Write report', 'Q1 financial summary', { status: 'in-progress', priority: 'medium' });
+const task2 = createTask('Write report', 'Q1 financial summary', {
+  status: 'in-progress',
+  priority: 'medium',
+  category: 'work',
+});
 console.log('Created:', task2);
 
 const task3 = createTask('  Call dentist  ', 'Schedule annual check-up', { priority: 'low' });
-console.log('Created (title trimmed):', task3);
+console.log('Created (title trimmed, default category):', task3);
 
 // --- Get a task by ID ---
 console.log('\n--- Getting task by ID ---');
@@ -36,14 +40,28 @@ console.log('\n--- Filter: status = in-progress ---');
 const inProgress = listTasks({ status: 'in-progress' });
 inProgress.forEach(t => console.log(` ${t.title}`));
 
-// --- Sort by priority (high → low) ---
+// --- Filter by category ---
+console.log('\n--- Filter: category = work ---');
+const byCategory = listTasks({ category: 'work' });
+byCategory.forEach(t => console.log(` ${t.title}`));
+
+// --- Combined filters ---
+console.log('\n--- Filter: status = in-progress and category = work ---');
+const combined = listTasks({ status: 'in-progress', category: 'work' });
+combined.forEach(t => console.log(` ${t.title}`));
+
+// --- Sort by priority (high to low) ---
 console.log('\n--- Sorted by priority ---');
 const byPriority = listTasks({ sort: 'priority' });
 byPriority.forEach(t => console.log(` [${t.priority}] ${t.title}`));
 
 // --- Update a task ---
 console.log('\n--- Updating task ---');
-const updated = updateTask(task1.id, { status: 'done', title: 'Buy groceries (done)' });
+const updated = updateTask(task1.id, {
+  status: 'done',
+  title: 'Buy groceries (done)',
+  category: 'urgent',
+});
 console.log('Updated:', updated);
 
 // --- Delete a task ---

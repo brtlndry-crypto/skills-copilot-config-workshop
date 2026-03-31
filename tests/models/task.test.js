@@ -15,10 +15,11 @@ test('generateId returns a unique value on each call', () => {
 });
 
 // Task construction
-test('Task constructor creates a task with default status and priority', () => {
+test('Task constructor creates a task with default status and priority and category', () => {
   const task = new Task('Fix bug');
   assert.equal(task.status, 'todo');
   assert.equal(task.priority, 'medium');
+  assert.equal(task.category, 'general');
 });
 
 test('Task constructor sets the trimmed title', () => {
@@ -26,10 +27,11 @@ test('Task constructor sets the trimmed title', () => {
   assert.equal(task.title, 'Fix bug');
 });
 
-test('Task constructor accepts a custom status and priority', () => {
-  const task = new Task('Deploy', undefined, { status: 'in-progress', priority: 'high' });
+test('Task constructor accepts a custom status, priority, and category', () => {
+  const task = new Task('Deploy', undefined, { status: 'in-progress', priority: 'high', category: 'work' });
   assert.equal(task.status, 'in-progress');
   assert.equal(task.priority, 'high');
+  assert.equal(task.category, 'work');
 });
 
 test('Task constructor assigns a unique string id', () => {
@@ -169,15 +171,61 @@ test('Task setPriority throws TypeError for non-string values', () => {
   assert.throws(() => task.setPriority(Number.MAX_SAFE_INTEGER), TypeError);
 });
 
+// Category tests
+test('Task category getter returns the category', () => {
+  const task = new Task('Category test', undefined, { category: 'work' });
+  assert.equal(task.category, 'work');
+});
+
+test('Task setCategory updates the category', () => {
+  const task = new Task('Category update');
+  task.setCategory('personal');
+  assert.equal(task.category, 'personal');
+});
+
+test('Task setCategory refreshes the updatedAt timestamp', async () => {
+  const task = new Task('Category timestamp');
+  const before = task.updatedAt;
+  await new Promise(r => setTimeout(r, 5));
+  task.setCategory('urgent');
+  assert.ok(task.updatedAt >= before);
+});
+
+test('Task setCategory throws ValidationError for empty string', () => {
+  const task = new Task('Category validation');
+  assert.throws(() => task.setCategory(''), ValidationError);
+});
+
+test('Task setCategory throws ValidationError for invalid category', () => {
+  const task = new Task('Category validation');
+  assert.throws(() => task.setCategory('x'.repeat(51)), ValidationError);
+});
+
+test('Task setCategory throws TypeError for non-string values', () => {
+  const task = new Task('Category type');
+  assert.throws(() => task.setCategory(123), TypeError);
+});
+
+test('Task constructor normalizes category to lowercase', () => {
+  const task = new Task('Normalize', undefined, { category: 'WORK' });
+  assert.equal(task.category, 'work');
+});
+
+test('Task constructor defaults category to "general" when omitted', () => {
+  const task = new Task('Default category');
+  assert.equal(task.category, 'general');
+});
+
 // toJSON
-test('Task toJSON returns a plain object with all required fields', () => {
-  const task = new Task('JSON test', 'desc', { status: 'in-progress', priority: 'high' });
+test('Task toJSON returns a plain object with all required fields including category', () => {
+  const task = new Task('JSON test', 'desc', { status: 'in-progress', priority: 'high', category: 'work' });
   const json = task.toJSON();
   assert.equal(typeof json, 'object');
   assert.equal(json.title, 'JSON test');
   assert.equal(json.description, 'desc');
   assert.equal(json.status, 'in-progress');
   assert.equal(json.priority, 'high');
+  assert.equal(json.category, 'work');
   assert.equal(typeof json.id, 'string');
   assert.equal(typeof json.createdAt, 'string');
   assert.equal(typeof json.updatedAt, 'string');

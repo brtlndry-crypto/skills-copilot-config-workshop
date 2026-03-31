@@ -4,6 +4,8 @@
 
 The Task Manager CLI is a command-line application that enables users to efficiently manage their daily tasks. It provides core task management operations (create, read, update, delete) with advanced filtering and sorting capabilities. Tasks persist in memory during each session and include metadata such as title, description, status, priority, and timestamps. The application prioritizes simplicity and usability, making it suitable for developers and teams who prefer terminal-based workflows.
 
+The feature scope now includes optional task categories so users can organize tasks by context (for example: work, personal, urgent). Category is assigned at creation or update time, defaults to general when omitted, and is supported as an additional list filter.
+
 ## User Stories
 
 1. **Create a Task**
@@ -11,6 +13,7 @@ The Task Manager CLI is a command-line application that enables users to efficie
    - Acceptance Criteria:
      - CLI accepts `add` command with title and description parameters
      - New task receives a unique ID, todo status, and medium priority by default
+       - New task receives category `general` by default when category is omitted
      - createdAt and updatedAt are set to current timestamp
      - Task is added to the in-memory store and confirmed to user
 
@@ -47,13 +50,28 @@ The Task Manager CLI is a command-line application that enables users to efficie
      - CLI accepts `list --priority <priority>` to filter results
      - Only tasks matching the specified priority are displayed
 
-7. **Sort Tasks**
+7. **Assign Category to a Task**
+   - As a user, I want to assign a category (for example: work, personal, urgent) so tasks are easier to organize.
+   - Acceptance Criteria:
+     - CLI accepts an optional `--category <category>` value on `add` and `update`
+     - Category is normalized and stored as lowercase text
+     - When omitted, category defaults to `general`
+     - Empty category values are rejected
+
+8. **Filter Tasks by Category**
+   - As a user, I want to filter tasks by category.
+   - Acceptance Criteria:
+     - CLI accepts `list --category <category>` to filter results
+     - Only tasks matching the specified category are displayed
+     - Filtering supports category-only and combined filters with status/priority
+
+9. **Sort Tasks**
    - As a user, I want to sort tasks by priority or creation date.
    - Acceptance Criteria:
      - CLI accepts `list --sort priority` (high → low) or `--sort date` (newest first)
      - Sorting is applied before or after filtering as needed
 
-8. **View Task Details**
+10. **View Task Details**
    - As a user, I want to see full details of a specific task including description and timestamps.
    - Acceptance Criteria:
      - CLI accepts `view` or `show` command with task ID
@@ -68,6 +86,7 @@ The Task Manager CLI is a command-line application that enables users to efficie
 - `description` (string, optional) - Longer explanation or details
 - `status` (string, enum: "todo" | "in-progress" | "done") - Current state of task, defaults to "todo"
 - `priority` (string, enum: "low" | "medium" | "high") - Task urgency level, defaults to "medium"
+- `category` (string, optional) - Task grouping label, defaults to "general"
 - `createdAt` (ISO 8601 timestamp) - When the task was created
 - `updatedAt` (ISO 8601 timestamp) - When the task was last modified
 
@@ -105,6 +124,15 @@ The Task Manager CLI is a command-line application that enables users to efficie
 - Default value: "medium" (when creating new task)
 - Error: "Priority must be one of: low, medium, high"
 
+**Category Parameter**
+- Optional field
+- Must be a non-empty string when provided
+- Minimum length: 1 character (after trim)
+- Maximum length: 50 characters
+- Case-insensitive input (normalize to lowercase)
+- Default value: "general" (when creating new task)
+- Error: "Category must be a non-empty string up to 50 characters"
+
 **Task ID Parameter**
 - Must be a valid ID format matching the store's ID scheme
 - ID must exist in the task store
@@ -115,9 +143,10 @@ The Task Manager CLI is a command-line application that enables users to efficie
 - Case-insensitive input
 - Error: "Sort must be one of: priority, date"
 
-**Filter Parameter (Status/Priority)**
-- Must be a valid enum value for respective field
-- Validation rules same as Status/Priority parameters above
+**Filter Parameter (Status/Priority/Category)**
+- Must be a valid value for the respective field
+- Status/Priority validation rules same as parameters above
+- Category follows Category Parameter rules
 
 ### Error Handling Conventions
 
@@ -200,7 +229,9 @@ src/
 - Implement view/show command for individual task details
 - Add filtering by status
 - Add filtering by priority
-- **Deliverable**: Full task management with basic filtering
+- Add category assignment and default behavior
+- Add filtering by category
+- **Deliverable**: Full task management with status/priority/category filtering
 
 ### Phase 3: Advanced Features (Enhancement)
 - Implement sorting by priority (high → low)
